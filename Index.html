@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHub - Netflix Style</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --background-color: #141414;
+            --card-bg: #181818;
+            --text-color: #ffffff;
+            --text-muted: #aaaaaa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        /* --- API Key Setup Screen --- */
+        #api-setup-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 20, 20, 0.98);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .api-card {
+            background: #000;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .api-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .api-card p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .api-card input {
+            width: 100%;
+            padding: 15px;
+            background: #333;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .api-card button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .api-card button:hover {
+            background: #b80710;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 4%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+            transition: background 0.3s;
+        }
+
+        .navbar.scrolled {
+            background: var(--background-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-decoration: none;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #55px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #444;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            margin-left: 8px;
+            width: 200px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* --- Hero Banner --- */
+        .hero {
+            height: 85vh;
+            position: relative;
+            background-size: cover;
+            background-position: center center;
+            display: flex;
+            align-items: center;
+            padding: 0 4%;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.8) 100%),
+                        linear-gradient(to top, var(--background-color) 0%, transparent 30%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 600px;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .hero-overview {
+            font-size: 16px;
+            color: #e5e5e5;
+            margin-bottom: 25px;
+            line-height: 1.4;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 26px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn-play {
+            background-color: white;
+            color: black;
+        }
+
+        .btn-info {
+            background-color: rgba(109, 109, 110, 0.7);
+            color: white;
+        }
+
+        /* --- Movie Rows --- */
+        .main-container {
+            margin-top: -50px;
+            position: relative;
+            z-index: 20;
+            padding: 0 4%;
+        }
+
+        .row {
+            margin-bottom: 40px;
+        }
+
+        .row-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #e5e5e5;
+        }
+
+        .row-posters {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 15px 0;
+            scroll-behavior: smooth;
+        }
+
+        .row-posters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .poster-card {
+            flex: 0 0 auto;
+            width: 160px;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .poster-card:hover {
+            transform: scale(1.08);
+            z-index: 30;
+        }
+
+        .poster-card img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .poster-info {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            width: 100%;
+            padding: 15px 10px 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 12px;
+        }
+
+        .poster-card:hover .poster-info {
+            opacity: 1;
+        }
+
+        .poster-title {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- Modal Popup (Detail & Player) --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 750px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 18px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+        }
+
+        .video-container iframe, .video-container .no-trailer-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .no-trailer-bg {
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .no-trailer-bg::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 15px;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .meta-rating {
+            color: #46d369;
+            font-weight: bold;
+        }
+
+        .modal-overview {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #e5e5e5;
+            margin-bottom: 20px;
+        }
+
+        .modal-action-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 32px; }
+            .search-box input { width: 130px; }
+            .modal-title { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. API Key Setup Screen -->
+    <div id="api-setup-screen">
+        <div class="api-card">
+            <h2>CineHub Setup</h2>
+            <p>To load real-time movies, enter your TMDB API Key.<br>Get it free from: <b>themoviedb.org -> Settings -> API</b></p>
+            <input type="text" id="api-key-input" placeholder="Paste your TMDB API Key here...">
+            <button onclick="saveApiKey()">Save & Start</button>
+        </div>
+    </div>
+
+    <!-- 2. Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="#" class="logo">CINEHUB</a>
+        <div class="nav-right">
+            <div class="search-box">
+                <i class="fas fa-search" style="color: #aaa;"></i>
+                <input type="text" id="search-input" placeholder="Titles, genres..." onkeyup="handleSearch(event)">
+            </div>
+            <button class="logout-btn" onclick="clearApiKey()"><i class="fas fa-key"></i> Change Key</button>
+        </div>
+    </nav>
+
+    <!-- 3. Hero Banner -->
+    <header class="hero" id="hero-banner">
+        <div class="hero-content">
+            <h1 class="hero-title" id="hero-title">Loading...</h1>
+            <p class="hero-overview" id="hero-overview">...</p>
+            <div class="hero-buttons">
+                <button class="btn btn-play" id="hero-play-btn"><i class="fas fa-play"></i> Play Trailer</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 4. Movie Rows Container -->
+    <main class="main-container" id="main-rows">
+        <!-- Rows will be injected dynamically via JS -->
+    </main>
+
+    <!-- 5. Interactive Video Player & Details Modal -->
+    <div class="modal" id="movie-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            
+            <div class="video-container" id="video-box">
+                <!-- Video player dynamic loading or fallback cover image -->
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-title-row">
+                    <h2 class="modal-title" id="modal-title">Movie Title</h2>
+                    <button class="modal-action-btn" id="modal-play-trigger"><i class="fas fa-play"></i> Watch Trailer</button>
+                </div>
+                <div class="modal-meta">
+                    <span class="meta-rating" id="modal-rating">0.0 Match</span>
+                    <span id="modal-date">Release Date</span>
+                </div>
+                <p class="modal-overview" id="modal-overview">Movie overview text...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let TMDB_API_KEY = "";
+        const BASE_URL = "https://api.themoviedb.org/3";
+        const IMG_URL = "https://image.tmdb.org/t/p/original";
+        const POSTER_URL = "https://image.tmdb.org/t/p/w500";
+
+        // Listen for navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // Initialize App & Check LocalStorage
+        window.onload = function() {
+            const savedKey = localStorage.getItem('tmdb_api_key');
+            if (savedKey) {
+                TMDB_API_KEY = savedKey;
+                document.getElementById('api-setup-screen').style.display = 'none';
+                loadDashboardData();
+            }
+        };
+
+        function saveApiKey() {
+            const keyInput = document.getElementById('api-key-input').value.trim();
+            if (!keyInput) {
+                alert("Please enter a valid API key.");
+                return;
+            }
+            localStorage.setItem('tmdb_api_key', keyInput);
+            TMDB_API_KEY = keyInput;
+            document.getElementById('api-setup-screen').style.display = 'none';
+            loadDashboardData();
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('tmdb_api_key');
+            location.reload();
+        }
+
+        // Fetch Data Wrapper
+        async function fetchMovies(endpoint) {
+            try {
+                const response = await fetch(`${BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&language=en-US&page=1`);
+                if (!response.ok) throw new Error("Invalid API key or Network error");
+                const data = await response.json();
+                return data.results;
+            } catch (err) {
+                alert("Error loading content. Please check if your TMDB API Key is correct.");
+                clearApiKey();
+                return [];
+            }
+        }
+
+        // Load Core Dashboard Parts
+        async function loadDashboardData() {
+            // 1. Fetch Banner/Trending Data
+            const trending = await fetchMovies('/trending/all/week');
+            if (trending.length > 0) {
+                setupHeroBanner(trending[Math.floor(Math.random() * trending.length)]);
+            }
+
+            // 2. Set Up Browse Rows
+            const rowsConfig = [
+                { title: "Trending Now", endpoint: "/trending/all/day" },
+                { title: "Top Rated", endpoint: "/movie/top_rated" },
+                { title: "Action Movies", endpoint: "/discover/movie&with_genres=28" },
+                { title: "Comedy Specials", endpoint: "/discover/movie&with_genres=35" },
+                { title: "Sci-Fi & Fantasy", endpoint: "/discover/movie&with_genres=878" }
+            ];
+
+            const mainContainer = document.getElementById('main-rows');
+            mainContainer.innerHTML = ""; // Clear existing
+
+            for (let row of rowsConfig) {
+                const movies = await fetchMovies(row.endpoint);
+                if(movies.length > 0) {
+                    createRowUI(row.title, movies);
+                }
+            }
+        }
+
+        // Setup Hero Banner
+        function setupHeroBanner(movie) {
+            const title = movie.title || movie.name || movie.original_name;
+            document.getElementById('hero-banner').style.backgroundImage = `url('${IMG_URL}${movie.backdrop_path}')`;
+            document.getElementById('hero-title').innerText = title;
+            document.getElementById('hero-overview').innerText = movie.overview.substring(0, 160) + "...";
+            
+            document.getElementById('hero-play-btn').onclick = () => openModal(movie.id, movie.media_type || 'movie');
+        }
+
+        // Create Slider Row UI
+        function createRowUI(title, movies) {
+            const mainContainer = document.getElementById('main-rows');
+            
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+            
+            const rowTitle = document.createElement('h2');
+            rowTitle.className = 'row-title';
+            rowTitle.innerText = title;
+            rowDiv.appendChild(rowTitle);
+
+            const postersDiv = document.createElement('div');
+            postersDiv.className = 'row-posters';
+
+            movies.forEach(movie => {
+                if (!movie.poster_path) return;
+                
+                const card = document.createElement('div');
+                card.className = 'poster-card';
+                card.onclick = () => openModal(movie.id, movie.media_type || 'movie');
+
+                const img = document.createElement('img');
+                img.src = `${POSTER_URL}${movie.poster_path}`;
+                img.alt = movie.title || movie.name;
+                card.appendChild(img);
+
+                const info = document.createElement('div');
+                info.className = 'poster-info';
+                info.innerHTML = `
+                    <p class="poster-title">${movie.title || movie.name}</p>
+                    <p style="color: #46d369; font-weight:bold;">★ ${movie.vote_average.toFixed(1)}</p>
+                `;
+                card.appendChild(info);
+                postersDiv.appendChild(card);
+            });
+
+            rowDiv.appendChild(postersDiv);
+            mainContainer.appendChild(rowDiv);
+        }
+
+        // Handle Search Entries
+        async function handleSearch(e) {
+            const query = e.target.value.trim();
+            if(query.length > 2) {
+                try {
+                    const res = await fetch(`${BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    if(data.results && data.results.length > 0) {
+                        const mainContainer = document.getElementById('main-rows');
+                        mainContainer.innerHTML = ""; // Clear for search
+                        createRowUI(`Search Results for: "${query}"`, data.results);
+                    }
+                } catch(err) { console.log(err); }
+            } else if (query.length === 0) {
+                loadDashboardData(); // Reset dashboard
+            }
+        }
+
+        // Open Modal and Fetch Video/Trailer
+        async function openModal(id, type) {
+            const modal = document.getElementById('movie-modal');
+            const videoBox = document.getElementById('video-box');
+            
+            // Default Loading states
+            document.getElementById('modal-title').innerText = "Loading...";
+            document.getElementById('modal-overview').innerText = "";
+            videoBox.innerHTML = ""; 
+
+            modal.classList.add('active');
+
+            try {
+                // Fetch Details
+                const detailRes = await fetch(`${BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}`);
+                const details = await detailRes.json();
+
+                // Fetch Trailer Video Key
+                const videoRes = await fetch(`${BASE_URL}/${type}/${id}/videos?api_key=${TMDB_API_KEY}`);
+                const videoData = await videoRes.json();
+                
+                // Extract YouTube Trailer
+                const trailer = videoData.results.find(vid => vid.site === 'YouTube' && (vid.type === 'Trailer' || vid.type === 'Teaser'));
+                const titleText = details.title || details.name;
+
+                document.getElementById('modal-title').innerText = titleText;
+                document.getElementById('modal-rating').innerText = `★ ${details.vote_average.toFixed(1)} Rating`;
+                document.getElementById('modal-date').innerText = details.release_date || details.first_air_date || '';
+                document.getElementById('modal-overview').innerText = details.overview;
+
+                // Setup Player Action
+                const triggerPlay = () => {
+                    if (trailer && trailer.key) {
+                        videoBox.innerHTML = `<iframe src="https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                    } else {
+                        alert("Sorry, no video trailer is available for this selection.");
+                    }
+                };
+
+                document.getElementById('modal-play-trigger').onclick = triggerPlay;
+
+                // Load initial poster placeholder backdrop into the player screen box
+                if(details.backdrop_path) {
+                    videoBox.innerHTML = `
+                        <div class="no-trailer-bg" style="background-image: url('${IMG_URL}${details.backdrop_path}');">
+                            <button onclick="document.getElementById('modal-play-trigger').click()" style="background: rgba(0,0,0,0.6); border: 2px solid white; color: white; width: 70px; height: 70px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding-left: 5px; transition: transform 0.2s;"><i class="fas fa-play"></i></button>
+                        </div>`;
+                }
+
+            } catch (err) {
+                console.log(err);
+                closeModal();
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('movie-modal');
+            modal.classList.remove('active');
+            document.getElementById('video-box').innerHTML = ""; // Stop playing track frame instantly
+        }
+    </script>
+</body>
+</html>
